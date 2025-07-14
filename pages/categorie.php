@@ -3,18 +3,15 @@ require_once("../inc/connect.php");
 require_once("../inc/fonction.php");
 $conn = dbconnect();
 
-// Récupérer toutes les catégories
 $categories = [];
 $res = mysqli_query($conn, "SELECT * FROM exam2_categorie_objet");
 while ($row = mysqli_fetch_assoc($res)) {
     $categories[] = $row;
 }
 
-// Récupérer les filtres
 $id_categorie = isset($_GET['id_categorie']) ? intval($_GET['id_categorie']) : 0;
 $statut = isset($_GET['statut']) ? $_GET['statut'] : 'tous';
 
-// Afficher la liste seulement si on a cliqué sur "Filtrer"
 $show_list = isset($_GET['statut']) || isset($_GET['id_categorie']);
 $objets = $show_list ? getObjetsFiltres($conn, $id_categorie, $statut) : [];
 ?>
@@ -24,12 +21,12 @@ $objets = $show_list ? getObjetsFiltres($conn, $id_categorie, $statut) : [];
     <meta charset="UTF-8">
     <title>Filtrer par catégorie</title>
     <link rel="stylesheet" href="../asset/bootstrap.min.css">
-    <link rel="stylesheet" href="../asset/syle.css">
+    <link rel="stylesheet" href="../asset/style.css">
 </head>
 <body>
 <?php include("../inc/navbar.php"); ?>
 <div class="container mt-5">
-    <h2>Filtrzer les objets</h2>
+    <h2>Filtrer les objets</h2>
     <form method="get" action="../traitements/traitement_categorie.php" class="row g-3 mb-4">
         <div class="col-md-4">
             <label for="id_categorie" class="form-label">Catégorie</label>
