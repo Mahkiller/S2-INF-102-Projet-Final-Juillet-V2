@@ -1,5 +1,8 @@
 -- creation de tables :
 -- membre (id_membre, nom , date de naissance, genre, émail, ville, mdp, image_profil)
+CREATE DATABASE examV3;
+USE examV3;
+
 CREATE TABLE exam2_membre (
     id_membre INT AUTO_INCREMENt PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
