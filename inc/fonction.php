@@ -93,3 +93,16 @@ $sql = "SELECT o.id_objet, o.nom_objet, c.nom_categorie, m.nom AS proprietaire,
     }
     return $tab;
 }
+
+// ajout de jour dans sql
+function modifierDateRetour($id, $nbJ){
+    $conn = dbconnect();
+
+    $sql = sprintf(
+        "UPDATE exam2_emprunt SET date_retour = DATE_ADD(date_emprunt, INTERVAL %d DAY) WHERE id_objet = %d",
+        $nbJ,
+        $id
+    );
+
+    return mysqli_query($conn, $sql);
+}

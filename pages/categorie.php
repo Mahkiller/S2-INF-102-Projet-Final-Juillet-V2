@@ -62,6 +62,8 @@ $objets = $show_list ? getObjetsFiltres($conn, $id_categorie, $statut) : [];
                 <th>Date de retour</th>
                 <th>Statut</th>
                 <th>Action</th>
+                <!-- modifier ici -->
+                <th>Emprunter</th>
             </tr>
         </thead>
         <tbody>
@@ -82,6 +84,14 @@ $objets = $show_list ? getObjetsFiltres($conn, $id_categorie, $statut) : [];
                     </td>
                      <td>
                         <a href="detail_objet.php?id=<?= (int)$objet['id_objet'] ?>" class="btn btn-info btn-sm">Détail</a>
+                    </td>
+                        <!-- modifier ici -->
+                    <td>
+                        <?php if ($disponible): ?>
+                            <a href="emprunt.php?id=<?= (int)$objet['id_objet']?>" class="btn btn-info btn-sm">Emprunter</a>
+                        <?php else: ?>
+                             <span class="badge bg-secondary">Disponible le <?= $objet['date_retour']?></span>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>
