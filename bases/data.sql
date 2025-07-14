@@ -130,3 +130,21 @@ INSERT INTO exam2_emprunt (id_objet, id_membre, date_emprunt, date_retour)
     SELECT o.id_objet, o.id_membre, '2025-07-10', '2025-07-20'
     FROM exam2_objet o
     WHERE o.id_objet NOT IN (SELECT id_objet FROM exam2_emprunt);
+
+-- alea2
+CREATE TABLE exam2_etatobject (
+    id_etat INT AUTO_INCREMENT PRIMARY KEY,
+    id_objet INT NOT NULL,
+    id_emprunt INT NOT NULL,
+    etat ENUM('Bon', 'Moyen', 'Mauvais') NOT NULL,
+    FOREIGN KEY (id_objet) REFERENCES exam2_objet(id_objet),
+    FOREIGN KEY (id_emprunt) REFERENCES exam2_emprunt(id_emprunt)
+);
+
+ALTER TABLE exam2_etatobject MODIFY COLUMN id_emprunt INT NULL;
+
+MariaDB [examV3]> INSERT INTO exam2_etatobject (id_objet, id_emprunt, etat)
+    -> VALUES
+    -> (1, 1, 'Bon'),
+    -> (2, 2, 'Moyen'),
+    -> (3, 3, 'Mauvais');

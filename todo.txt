@@ -17,3 +17,8 @@ alea 1:
     - fonction alter table pour modifier colone -> ? id obj 
     - cmt ajouter une date dans sql ?
     - traitement si necessaire -> revenir dans liste obj
+
+alea 2: 
+    sujet : liste objet par membre, cad le nombre d'objet emprunter par une personne(il y a 4 personne)
+    -il faut mettre un boutton retour pour voir si il l'a abime ou si c'est ok
+    -faire une page qui liste tous par seulement abime ou par ok, seulement le nb genre abime:10 ok:10

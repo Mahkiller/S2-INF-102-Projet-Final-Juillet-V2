@@ -12,6 +12,8 @@
         <li class="nav-item"><a class="nav-link" href="../pages/inscription.php">Inscription</a></li>
         <li class="nav-item"><a class="nav-link" href="../pages/categorie.php">Voir les catégories</a></li>
         <li class="nav-item"><a class="nav-link" href="../pages/ajout_objet.php">Ajouter un objet</a></li>
+        <li class="nav-item"><a class="nav-link" href="../pages/listemembre.php">Voir les proprietaire</a></li>
+        <li class="nav-item"><a class="nav-link" href="../pages/totalobject.php">Etat object</a></li>
       </ul>
     </div>
   </div>
