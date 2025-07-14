@@ -1,0 +1,54 @@
+.custom-navbar {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    font-size: 1.1rem;
+}
+.navbar-brand {
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.nav-link {
+    transition: color 0.2s;
+}
+.nav-link:hover, .nav-link.active {
+    color: #FFD700 !important;
+    text-decoration: underline;
+}
+
+/* Effet zoom sur les choix de l'accueil */
+.choice-zoom {
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border-radius: 10px;
+    margin: 0 10px;
+    display: inline-block;
+}
+.choice-zoom:hover {
+    transform: scale(1.07);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+/* Table style */
+.table thead th {
+    background: #0d6efd;
+    color: #fff;
+    text-align: center;
+}
+.table tbody td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* Bouton réserver */
+.btn-reserver {
+    background: #198754;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-weight: bold;
+    transition: background 0.2s, transform 0.2s;
+}
+.btn-reserver:hover {
+    background: #145c32;
+    transform: scale(1.05);
+}
