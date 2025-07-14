@@ -76,15 +76,16 @@ function getObjetsFiltres($conn, $id_categorie = 0, $statut = 'tous') {
 
     $where_sql = $where ? "WHERE " . implode(" AND ", $where) : "";
 
-    $sql = "SELECT o.nom_objet, c.nom_categorie, m.nom AS proprietaire,
-                   MAX(e.date_retour) AS date_retour
-            FROM exam2_objet o
-            JOIN exam2_categorie_objet c ON o.id_categorie = c.id_categorie
-            JOIN exam2_membre m ON o.id_membre = m.id_membre
-            LEFT JOIN exam2_emprunt e ON o.id_objet = e.id_objet
-            $where_sql
-            GROUP BY o.id_objet
-            ORDER BY o.nom_objet";
+$sql = "SELECT o.id_objet, o.nom_objet, c.nom_categorie, m.nom AS proprietaire,
+               MAX(e.date_retour) AS date_retour
+        FROM exam2_objet o
+        JOIN exam2_categorie_objet c ON o.id_categorie = c.id_categorie
+        JOIN exam2_membre m ON o.id_membre = m.id_membre
+        LEFT JOIN exam2_emprunt e ON o.id_objet = e.id_objet
+        $where_sql
+        GROUP BY o.id_objet
+        ORDER BY o.nom_objet";
+
     $result = mysqli_query($conn, $sql);
     $tab = [];
     while ($row = mysqli_fetch_assoc($result)) {

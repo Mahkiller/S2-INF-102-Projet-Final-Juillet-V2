@@ -61,6 +61,7 @@ $objets = $show_list ? getObjetsFiltres($conn, $id_categorie, $statut) : [];
                 <th>Propriétaire</th>
                 <th>Date de retour</th>
                 <th>Statut</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -78,6 +79,9 @@ $objets = $show_list ? getObjetsFiltres($conn, $id_categorie, $statut) : [];
                         <?php else: ?>
                             <span class="badge bg-secondary">Indisponible</span>
                         <?php endif; ?>
+                    </td>
+                     <td>
+                        <a href="detail_objet.php?id=<?= (int)$objet['id_objet'] ?>" class="btn btn-info btn-sm">Détail</a>
                     </td>
                 </tr>
             <?php endforeach; ?>

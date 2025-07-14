@@ -1,72 +1,96 @@
 <?php
 session_start();
-require_once('../inc/connexion.php');
+require_once("../inc/connect.php");
+require_once("../inc/fonction.php");
 
-if (!isset($_SESSION['id_membre'])) {                                                                                                                                                                                                                                                                                                                                                                                                                                                  
-    header('Location: ../pages/login.php');
+if (!isset($_SESSION['id_membre'])) {
+    header("Location: ../pages/login.php");
     exit();
 }
 
-$id_membre = $_SESSION['id_membre'];
-$nom_objet = trim($_POST['nom_objet']);
-$id_categorie = $_POST['id_categorie'];
-
-if (empty($nom_objet) || empty($id_categorie)) {
-    die('Nom de l\'objet ou catégorie manquant.');
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("Location: ../pages/ajout_objet.php");
+    exit();
 }
 
-$uploadDir = __DIR__ . '/../uploads/';
-$maxSize = 50 * 1024 * 1024;
-$allowedMimeTypes = [
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-    'video/mp4', 'video/webm', 'video/avi', 'video/quicktime'
-];
+$conn = dbconnect();
 
-if (!is_dir($uploadDir)) {
-    mkdir($uploadDir, 0777, true);
+$id_membre = $_SESSION['id_membre'];
+$nom_objet = trim($_POST['nom_objet']);
+$id_categorie = intval($_POST['id_categorie']);
+
+// Validation simple
+if (empty($nom_objet) || $id_categorie <= 0) {
+    die("Nom d'objet ou catégorie invalide.");
 }
 
 // Insertion objet
-$stmt = $bdd->prepare("INSERT INTO exam2_objet (nom_objet, id_categorie, id_membre) VALUES (?, ?, ?)");
-$stmt->execute([$nom_objet, $id_categorie, $id_membre]);
-$id_objet = $bdd->lastInsertId();
+$stmt = mysqli_prepare($conn, "INSERT INTO exam2_objet (nom_objet, id_categorie, id_membre) VALUES (?, ?, ?)");
+mysqli_stmt_bind_param($stmt, "sii", $nom_objet, $id_categorie, $id_membre);
+if (!mysqli_stmt_execute($stmt)) {
+    die("Erreur lors de l'insertion de l'objet : " . mysqli_error($conn));
+}
+$id_objet = mysqli_insert_id($conn);
 
-$totalFiles = count($_FILES['image']['name']);
-$successCount = 0;
-$errorMessages = [];
+// Upload des images
+$uploadDir = __DIR__ . '/../uploads/';
+if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
 
-for ($i = 0; $i < $totalFiles; $i++) {
-    if ($_FILES['image']['error'][$i] !== UPLOAD_ERR_OK) {
-        $errorMessages[] = "Erreur lors du fichier #" . ($i + 1);
-        continue;
+$allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+$maxSize = 5 * 1024 * 1024; // 5Mo max par fichier
+
+$uploadedCount = 0;
+$errors = [];
+
+if (isset($_FILES['images'])) {
+    for ($i = 0; $i < count($_FILES['images']['name']); $i++) {
+        $error = $_FILES['images']['error'][$i];
+        if ($error !== UPLOAD_ERR_OK) {
+            $errors[] = "Erreur upload image #" . ($i + 1);
+            continue;
+        }
+
+        $size = $_FILES['images']['size'][$i];
+        if ($size > $maxSize) {
+            $errors[] = "Image #" . ($i + 1) . " trop volumineuse.";
+            continue;
+        }
+
+        $tmpName = $_FILES['images']['tmp_name'][$i];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $tmpName);
+        finfo_close($finfo);
+
+        if (!in_array($mime, $allowedMimeTypes)) {
+            $errors[] = "Image #" . ($i + 1) . " type non autorisé.";
+            continue;
+        }
+
+        // Nom safe
+        $originalName = pathinfo($_FILES['images']['name'][$i], PATHINFO_FILENAME);
+        $originalName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $originalName);
+        $extension = pathinfo($_FILES['images']['name'][$i], PATHINFO_EXTENSION);
+        $finalName = $originalName . '_' . uniqid() . '.' . $extension;
+
+        $destination = $uploadDir . $finalName;
+
+        if (move_uploaded_file($tmpName, $destination)) {
+            // Insertion dans la table des images liées à l'objet
+            $stmtImg = mysqli_prepare($conn, "INSERT INTO exam2_images_objet (id_objet, nom_image) VALUES (?, ?)");
+            mysqli_stmt_bind_param($stmtImg, "is", $id_objet, $finalName);
+            if (mysqli_stmt_execute($stmtImg)) {
+                $uploadedCount++;
+            } else {
+                $errors[] = "Erreur base pour image #" . ($i + 1);
+                // Optionnel: supprimer fichier uploadé si insertion échoue
+                unlink($destination);
+            }
+        } else {
+            $errors[] = "Erreur déplacement fichier image #" . ($i + 1);
+        }
     }
-
-    if ($_FILES['image']['size'][$i] > $maxSize) {
-        $errorMessages[] = "Fichier #" . ($i + 1) . " trop gros.";
-        continue;
-    }
-
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mimeType = finfo_file($finfo, $_FILES['image']['tmp_name'][$i]);
-    finfo_close($finfo);
-
-    if (!in_array($mimeType, $allowedMimeTypes)) {
-        $errorMessages[] = "Type non autorisé pour fichier #" . ($i + 1);
-        continue;
-    }
-
-    $baseName = pathinfo($_FILES['image']['name'][$i], PATHINFO_FILENAME);
-    $extension = pathinfo($_FILES['image']['name'][$i], PATHINFO_EXTENSION);
-    $safeName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $baseName);
-    $finalName = $safeName . '_' . uniqid() . '.' . $extension;
-
-    if (move_uploaded_file($_FILES['image']['tmp_name'][$i], $uploadDir . $finalName)) {
-        $stmtImg = $bdd->prepare("INSERT INTO exam2_images_objet (id_objet, nom_image) VALUES (?, ?)");
-        $stmtImg->execute([$id_objet, $finalName]);
-        $successCount++;
-    } else {
-        $errorMessages[] = "Échec déplacement fichier #" . ($i + 1);
-    }
+} else {
+    $errors[] = "Aucune image uploadée.";
 }
 
 ?>
@@ -75,34 +99,34 @@ for ($i = 0; $i < $totalFiles; $i++) {
 <html lang="fr">
 <head>
     <meta charset="UTF-8" />
-    <title>Résultat ajout objet</title>
+    <title>Ajout d'objet - Résultat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body>
 <div class="container mt-4">
     <h1>Ajout d'objet</h1>
-    <?php if ($successCount > 0): ?>
+    <?php if ($uploadedCount > 0): ?>
         <div class="alert alert-success">
-            ✅ Objet ajouté avec succès.<br>
-            📂 <?= $successCount ?> fichier(s) uploadé(s).
+            Objet ajouté avec succès.<br>
+            <?= $uploadedCount ?> image(s) uploadée(s).
         </div>
     <?php else: ?>
-        <div class="alert alert-danger">❌ Aucun fichier uploadé.</div>
+        <div class="alert alert-danger">
+            Aucun fichier uploadé avec succès.
+        </div>
     <?php endif; ?>
 
-    <?php if (!empty($errorMessages)): ?>
+    <?php if ($errors): ?>
         <div class="alert alert-warning">
-            ⚠️ Erreurs rencontrées :<br>
             <ul>
-                <?php foreach ($errorMessages as $msg): ?>
-                    <li><?= htmlspecialchars($msg) ?></li>
+                <?php foreach ($errors as $err): ?>
+                    <li><?= htmlspecialchars($err) ?></li>
                 <?php endforeach; ?>
             </ul>
         </div>
     <?php endif; ?>
 
-    <a href="../pages/ajout_objet.php" class="btn btn-secondary mt-3">Retour</a>
+    <a href="../pages/ajout_objet.php" class="btn btn-primary mt-3">Retour</a>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

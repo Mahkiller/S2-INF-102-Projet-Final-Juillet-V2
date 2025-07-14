@@ -1,14 +1,21 @@
 <?php
 session_start();
-if (!isset($_SESSION['id_membre'])) {
-    header('Location: upload.php '); // ou upload.php si c'est ça
-    exit();
+
+
+require_once('../inc/connect.php');
+
+$conn = mysqli_connect('localhost', 'root', '', 'examV3');
+mysqli_set_charset($conn, 'utf8mb4');
+if (!$conn) {
+    die('Erreur connexion BDD : ' . mysqli_connect_error());
 }
-require_once('../inc/connexion.php');
 
-$categories = $bdd->query("SELECT * FROM exam2_categorie_objet")->fetchAll(PDO::FETCH_ASSOC);
+$categories = [];
+$res = mysqli_query($conn, "SELECT * FROM exam2_categorie_objet");
+while ($row = mysqli_fetch_assoc($res)) {
+    $categories[] = $row;
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -32,8 +39,9 @@ $categories = $bdd->query("SELECT * FROM exam2_categorie_objet")->fetchAll(PDO::
         <div class="mb-3">
             <label for="id_categorie" class="form-label">Catégorie :</label>
             <select name="id_categorie" id="id_categorie" class="form-select" required>
+                <option value="">-- Choisir une catégorie --</option>
                 <?php foreach ($categories as $cat): ?>
-                    <option value="<?= htmlspecialchars($cat['id_categorie']) ?>">
+                    <option value="<?= (int)$cat['id_categorie'] ?>">
                         <?= htmlspecialchars($cat['nom_categorie']) ?>
                     </option>
                 <?php endforeach; ?>
@@ -41,8 +49,8 @@ $categories = $bdd->query("SELECT * FROM exam2_categorie_objet")->fetchAll(PDO::
         </div>
 
         <div class="mb-3">
-            <label for="image" class="form-label">Fichiers (images ou vidéos) :</label>
-            <input type="file" id="image" name="image[]" accept="image/*,video/*" multiple class="form-control" required>
+            <label for="image" class="form-label">Photo de l'objet (image uniquement) :</label>
+            <input type="file" id="image" name="image" accept="image/*" class="form-control" required>
         </div>
 
         <button type="submit" class="btn btn-primary">Ajouter</button>
